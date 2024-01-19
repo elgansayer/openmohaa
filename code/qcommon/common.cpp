@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "qcommon.h"
 #include "q_version.h"
 #include <setjmp.h>
+#include <sqlite3.h> 
+
 #ifndef _WIN32
 #include <netinet/in.h>
 #include <sys/stat.h> // umask
@@ -50,6 +52,8 @@ extern "C" {
 cvar_t *sv_scriptfiles;
 cvar_t *g_scriptcheck;
 cvar_t *g_showopcodes;
+
+sqlite3 *elgbot_db;
 
 int demo_protocols[] =
 { 0, 0 }; // the first value of the array will be replaced by com_protocol
@@ -460,6 +464,12 @@ do the appropriate things.
 =============
 */
 void Com_Quit_f( void ) {
+
+	//TODO: Move to a better place
+	sqlite3_close(elgbot_db);
+	// print closed db
+	Com_Printf("Closed elgbot.db\n");
+
 	// don't try to shutdown if we are in a recursive error
 	char *p = Cmd_Args( );
 	if ( !com_errorEntered ) {
@@ -1835,6 +1845,22 @@ void Com_Init( char *commandLine ) {
     Sys_CloseMutex();
 #endif
 
+	sqlite3_open("elgbot.db", &elgbot_db);
+
+	char *zErrMsg = 0;
+	int rc; 
+
+	/* Execute SQL statement */
+	rc = sqlite3_exec(elgbot_db, "CREATE TABLE IF NOT EXISTS kills (id INTEGER PRIMARY KEY AUTOINCREMENT, attackerName TEXT, victimName TEXT, hit_place TEXT, weapon_name TEXT, time TEXT, map TEXT);", NULL, 0, &zErrMsg);
+
+	if( rc != SQLITE_OK ){
+		Com_Printf("SQL error: %s\n", zErrMsg);
+		sqlite3_free(zErrMsg);
+	} else {
+		Com_Printf("Table created successfully\n");
+	}
+	
+	
 	// set com_frameTime so that if a map is started on the
 	// command line it will still be able to count on com_frameTime
 	// being random enough for a serverid
@@ -1852,6 +1878,33 @@ void Com_Init( char *commandLine ) {
 }
 
 //==================================================================
+static int callback(void *NotUsed, int argc, char **argv, char **azColName) {
+   int i;
+   for(i = 0; i<argc; i++) {
+      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+   }
+   printf("\n");
+   return 0;
+}
+
+void Com_Test_Sql_f(const char * attackerName,const char * victimName, const char *s1,const char *s2,const char *type) {
+	char *zErrMsg = 0;
+	int rc; 
+
+	char sql[256];
+	sprintf(sql, "INSERT INTO kills (attackerName, victimName, hit_place, weapon_name, time, map) VALUES ('%s', '%s', '%s', '%s', '%s', '%s');", attackerName, victimName, s1, s2, "12:34", type);
+	
+	/* Execute SQL statement */
+	rc = sqlite3_exec(elgbot_db, sql, NULL, 0, &zErrMsg);
+
+	if( rc != SQLITE_OK ){
+		Com_Printf("SQL error: %s\n", zErrMsg);
+		sqlite3_free(zErrMsg);
+	} else {
+		Com_Printf("Table created successfully\n");
+	}
+	
+}
 
 void Com_WriteConfigToFile( const char *filename ) {
 	fileHandle_t	f;

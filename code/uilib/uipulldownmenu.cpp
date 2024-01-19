@@ -233,7 +233,7 @@ void UIPulldownMenu::CreateAligned
 	)
 
 {
-	setFont("verdana-12");
+	setFont("facfont-20");
 	UIRect2D rect = getAlignmentRect(parent);
 	Create(parent, listener, rect);
 }

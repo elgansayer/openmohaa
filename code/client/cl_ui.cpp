@@ -120,6 +120,43 @@ cvar_t        *ui_debugload;
 cvar_t        *sound_overlay;
 cvar_t        *ui_compass_scale;
 
+// Elgbot ui stats
+cvar_t        *ui_NumSuicides;
+cvar_t        *ui_NumKills;
+cvar_t        *ui_NumKillingSpree;
+cvar_t        *ui_NumRampage;
+cvar_t        *ui_NumDominating;
+cvar_t        *ui_NumUnstoppable;
+cvar_t        *ui_NumGodLike;
+cvar_t        *ui_NumHolyShit;
+cvar_t        *ui_bashed;
+cvar_t        *ui_gotBashed;
+
+// Elgbot configurations (words to look for)
+cvar_t        *eb_sounds; // play sounds
+cvar_t        *eb_displays; // show ui
+cvar_t        *eb_announcements;  // should announce
+cvar_t        *eb_streakTime; // time between
+// cvar_t        *eb_firstKillDone; // did someone already get a kill
+
+cvar_t        *eb_lastKillTime;
+cvar_t        *eb_deathsInARow;
+cvar_t        *eb_killsInARow;
+cvar_t        *eb_quickKillLevel;
+
+cvar_t        *eb_suicide;
+cvar_t        *eb_gotKill;
+cvar_t        *eb_bashed;
+cvar_t        *eb_gotBashed;
+
+cvar_t        *eb_head;
+cvar_t        *eb_torso;
+cvar_t        *eb_pelvis;
+cvar_t        *eb_rightArm;
+cvar_t        *eb_leftArm;
+cvar_t        *eb_rightLeg;
+cvar_t        *eb_leftLeg;
+
 static intro_stage_t intro_stage;
 static char          server_mapname[64];
 static UIListCtrl   *scoreboardlist;
@@ -131,6 +168,21 @@ static float         scoreboard_h;
 static qboolean      scoreboard_header;
 cvar_t              *cl_playintro;
 cvar_t              *cl_movieaudio;
+
+// Elgbot
+cvar_t *cl_NumSuicides;
+cvar_t *cl_NumKills;
+cvar_t *cl_NumKillingSpree;
+cvar_t *cl_NumRampage;
+cvar_t *cl_NumDominating;
+cvar_t *cl_NumUnstoppable;
+cvar_t *cl_NumGodLike;
+cvar_t *cl_NumHolyShit;
+cvar_t *cl_bashed;
+cvar_t *cl_gotBashed;
+cvar_t *cl_numDeathsInARow;
+cvar_t *cl_numKillsInARow;
+
 static unsigned int  startCountLow;
 static unsigned int  startCountHigh;
 static unsigned int  loadCountLow;
@@ -5117,6 +5169,52 @@ CL_InitUI
 ====================
 */
 #define UI_OLD_API_VERSION 4
+
+void CL_InitializeElgbot(void) 
+{
+
+    //TODO: Get these all time from mysql/updatw sql and use for in game display
+    cl_NumSuicides = Cvar_Get("ui_NumSuicides", "0", 0);
+    cl_NumKills = Cvar_Get("ui_NumKills", "0", 0);
+    cl_NumKillingSpree = Cvar_Get("ui_NumKillingSpree", "0", 0);
+    cl_NumRampage = Cvar_Get("ui_NumRampage", "0", 0);
+    cl_NumDominating = Cvar_Get("ui_NumDominating", "0", 0);
+    cl_NumUnstoppable = Cvar_Get("ui_NumUnstoppable", "0", 0);
+    cl_NumGodLike = Cvar_Get("ui_NumGodLike", "0", 0);
+    cl_NumHolyShit = Cvar_Get("ui_NumHolyShit", "0", 0);
+    cl_bashed = Cvar_Get("ui_bashed", "0", 0);
+    cl_gotBashed = Cvar_Get("ui_gotBashed", "0", 0);
+    cl_numDeathsInARow = Cvar_Get("ui_numDeathsInARow", "0", 0);
+    cl_numKillsInARow = Cvar_Get("ui_numKillsInARow", "0", 0);
+
+    // Options
+    eb_sounds = Cvar_Get("eb_sounds", "1", 0);
+    eb_displays = Cvar_Get("eb_displays", "1", 0);
+    eb_announcements = Cvar_Get("eb_announcements", "1", 0);
+    eb_streakTime = Cvar_Get("eb_streakTime", "10", 0);
+
+    // for stats
+    // for tracking 
+    eb_suicide = Cvar_Get("eb_suicide", "killed yourself", 0);
+    eb_gotKill = Cvar_Get("eb_gotKill", "You killed", 0);
+
+    eb_bashed = Cvar_Get("eb_bashed", "", 0);
+    eb_gotBashed = Cvar_Get("eb_gotBashed", "", 0);
+    
+    eb_head = Cvar_Get("eb_head", "head,helmet,neck", 0);
+    eb_torso = Cvar_Get("eb_torso", "torso", 0);
+    eb_pelvis = Cvar_Get("eb_pelvis", "pelvis", 0);
+    eb_rightArm = Cvar_Get("eb_rightArm", "right arm,right hand", 0);
+    eb_leftArm = Cvar_Get("eb_leftArm", "left arm,left hand", 0);
+    eb_rightLeg = Cvar_Get("eb_rightLeg", "right leg,right foot", 0);
+    eb_leftLeg = Cvar_Get("eb_leftLeg", "left leg,left foot", 0);
+
+    // for tracking during game , not stats
+    eb_deathsInARow = Cvar_Get("eb_deathsInARow", "0", CVAR_INIT);
+    eb_killsInARow = Cvar_Get("eb_killsInARow", "0", CVAR_INIT);    
+    eb_lastKillTime = Cvar_Get("eb_lastKillTime", "0", CVAR_INIT);
+    eb_quickKillLevel = Cvar_Get("eb_quickKillLevel", "0", CVAR_INIT);    
+}
 
 void CL_InitializeUI(void)
 {

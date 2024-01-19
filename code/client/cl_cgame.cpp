@@ -28,10 +28,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/localization.h"
 #include "../qcommon/bg_compat.h"
 
+
 extern qboolean loadCamera(const char *name);
 extern void startCamera(int time);
 extern qboolean getCameraInfo(int time, vec3_t *origin, vec3_t *angles);
 
+// sqlite3 *elgbot_db;
 /*
 ====================
 CL_GetGameState
@@ -946,8 +948,11 @@ void CL_InitCGame( void ) {
 	CL_EndRegistration();
 
 	t2 = Sys_Milliseconds();
-
+ 
 	Com_Printf( "CL_InitCGame: %5.2f seconds\n", ( t2 - t1 ) / 1000.0 );
+
+//    sqlite3_open("elgbot.db", &elgbot_db);
+
 }
 
 

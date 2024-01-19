@@ -817,6 +817,11 @@ void Com_Error(int level, const char *error, ...)
     cgi.Error(level, "%s", text);
 }
 
+void Com_Test_Sql_f( const char * attackerName,const char * victimName, const char *s1,const char *s2,const char *type ) {
+    // print here
+    cgi.Printf("Com_Test_Sql_f: %s %s %s %s %s\n", attackerName, victimName, s1, s2, type);
+}
+
 void Com_Printf(const char *msg, ...)
 {
     va_list argptr;

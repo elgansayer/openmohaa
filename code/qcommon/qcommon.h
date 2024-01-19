@@ -920,6 +920,7 @@ typedef enum
 
 char		*CopyString( const char *in );
 void		Info_Print( const char *s );
+void 		Com_Test_Sql_f( const char * attackerName,const char * victimName, const char *s1,const char *s2,const char *type );
 
 void		Com_BeginRedirect (char *buffer, int buffersize, void (*flush)(char *));
 void		Com_EndRedirect( void );

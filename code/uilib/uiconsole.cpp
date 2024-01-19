@@ -487,7 +487,9 @@ void UIConsole::Draw
 
 {
 	UColor* pCurrColor;
-
+ 
+ //TODO: Find a nice big font
+ m_font->setFont("courier-20");
 	m_font->setColor(m_foreground_color);
 	pCurrColor = &m_foreground_color;
 

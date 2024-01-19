@@ -73,6 +73,8 @@ ENDIF()
 
 # Common stuff
 
+add_subdirectory("code/sqlite3")
+
 add_subdirectory("code/qcommon")
 add_subdirectory("code/gamespy")
 
@@ -120,6 +122,7 @@ if (NOT BUILD_NO_CLIENT)
 	target_link_libraries(openmohaa PRIVATE omohserver)
 	target_link_libraries(openmohaa PRIVATE omohclient)
 	target_link_libraries(openmohaa PRIVATE omohrenderer omohsdl)
+	target_link_libraries(openmohaa PRIVATE omohsqlite)
 	target_link_libraries(openmohaa PRIVATE qcommon qcommon_standalone)
 
 	### Gamespy dependency

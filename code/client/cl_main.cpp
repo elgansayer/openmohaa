@@ -2727,6 +2727,8 @@ void CL_StartHunkUsers( qboolean rendererOnly ) {
 		cls.uiStarted = qtrue;
 		CL_InitializeUI();
 	}
+
+	CL_InitializeElgbot();
 }
 
 /*

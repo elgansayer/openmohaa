@@ -1148,7 +1148,12 @@ static void IN_ProcessEvents( void )
 							}
 
 							// check if size actually changed
-							if( cls.glconfig.vidWidth == width && cls.glconfig.vidHeight == height )
+							int widthDifference = abs(cls.glconfig.vidWidth - width);
+							int heightDifference = abs(cls.glconfig.vidHeight - height);
+							int widthThreshold = cls.glconfig.vidWidth * 0.1;
+							int heightThreshold = cls.glconfig.vidHeight * 0.1;
+
+							if (widthDifference <= widthThreshold && heightDifference <= heightThreshold)
 							{
 								break;
 							}
@@ -1157,6 +1162,15 @@ static void IN_ProcessEvents( void )
 							Cvar_SetValue( "r_customheight", height );
 							Cvar_Set( "r_mode", "-1" );
 
+							Com_DPrintf("vidWidth: %d\n", cls.glconfig.vidWidth);
+							Com_DPrintf("vidHeight: %d\n", cls.glconfig.vidHeight);
+							
+							// print width and height to console
+							Com_DPrintf("Width: %d\n", width);
+							Com_DPrintf("Height: %d\n", height);
+
+				Cbuf_ExecuteText(EXEC_NOW, "quit Closed window\n");
+				
 							// Wait until user stops dragging for 1 second, so
 							// we aren't constantly recreating the GL context while
 							// he tries to drag...

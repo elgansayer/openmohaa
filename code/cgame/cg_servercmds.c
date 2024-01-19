@@ -206,7 +206,378 @@ static void CG_ConfigStringModified(int num, qboolean modelOnly)
     CG_ProcessConfigString(num, modelOnly);
 }
 
-/*
+
+static void CG_ParsePrintedText()
+{
+
+    // // com print we are here
+    // Com_Printf("CG_ServerCommand: printdeathmsg\n");
+    
+    // // print sql test
+    // Com_Test_Sql_f(attackerName, victimName, s1 , s2, type);
+
+
+    const char *cmd;
+    int         iClientNum;
+    const char *pszClientInfo;
+    const char *pszName;
+    const char *fullCmd;
+    float       fX, fY;
+    float       color[4];
+    qhandle_t   handle;
+
+    cmd = cgi.Argv(0);
+    fullCmd = cgi.Args();
+
+    char combinedCmd[256];
+    size_t combinedCmdSize = sizeof(combinedCmd);
+    snprintf(combinedCmd, combinedCmdSize, "%s %s", cmd, fullCmd);
+    combinedCmd[combinedCmdSize - 1] = '\0'; // Ensure null-termination
+
+    Com_Printf("Command is: %s\n", cgi.Argv(0));
+    Com_Printf("fullCmd is: %s\n", cgi.Args());
+    Com_Printf("combinedCmd is: %s\n", combinedCmd);
+
+    pszName = cgi.Cvar_Get("name", "", 0)->string;
+    Com_Printf("name is: %s\n", pszName);
+
+    if (pszName == NULL || pszName[0] == "" || pszName[0] == '\0') {
+        return;
+    }
+
+    // cvar_t *eb_bashed = cgi.Cvar_Get("eb_bashed", "", 0);
+    // cvar_t *eb_gotBashed = cgi.Cvar_Get("eb_gotBashed", "", 0);
+    
+    cvar_t *eb_suicide = cgi.Cvar_Get("eb_suicide", "killed yourself", 0);
+    if (eb_CheckStringForCVar(combinedCmd , eb_suicide))
+    {
+        // We killed ourselves        
+        eb_ResetLastKillTime();
+        eb_ResetKillsInARow();
+        return;
+    }
+
+    // Don't continue if the message is just "You killed %s"
+    qboolean foundYouKilled = eb_CheckForYouKilledMessage(combinedCmd);
+    if (foundYouKilled)
+    {
+        eb_ResetDeathsInARow();
+        return;
+    }
+
+    // Get body part stats
+    eb_CheckForBodyParts(fullCmd);
+}
+
+qboolean eb_CheckForYouKilledMessage(const char *combinedCmd) 
+{
+    cvar_t *eb_gotKill = cgi.Cvar_Get("eb_gotKill", "You killed", 0);
+    if (!eb_CheckStringForCVar(combinedCmd , eb_gotKill))
+    {
+        return qfalse;
+    }
+    
+    time_t currentTime = time(NULL);
+    int unixTimeStamp = (int)currentTime;
+            
+    cvar_t *eb_lastKillTime = cgi.Cvar_Get("eb_lastKillTime", "0", 0);
+    cvar_t *eb_streakTime = cgi.Cvar_Get("eb_streakTime", "10", 0);
+
+    int lastKillTime = eb_lastKillTime->integer;
+    int streakTime = eb_streakTime->integer;
+
+    if ((lastKillTime > 0 && streakTime > 0 ) && (lastKillTime > (unixTimeStamp - streakTime))) {
+        // we got a killing spree
+        Com_Printf("we got a quick kill spree: %d\n", time);
+        eb_PerformQuickKills();
+    } else {
+        // We count this kill 
+        cgi.Cvar_Set("eb_quickKillLevel", "1");
+    }    
+
+    char timeString[20];
+    snprintf(timeString, sizeof(timeString), "%d", unixTimeStamp);
+    cgi.Cvar_Set("eb_lastKillTime", timeString);
+
+    // Update kills in a row
+    cvar_t *eb_killsInARow = cgi.Cvar_Get("eb_killsInARow", "0", 0);
+    int killsInARow = eb_killsInARow->integer;
+    killsInARow++;
+    char killsInARowString[20];
+    snprintf(killsInARowString, sizeof(killsInARowString), "%d", killsInARow);
+    cgi.Cvar_Set("eb_killsInARow", killsInARowString);
+
+    // Com print we got a kill
+    Com_Printf("we got a kill: %s\n", killsInARowString);
+
+    // Perform kill spree checks (killing spree, rampage, dominating, unstoppable, godlike)
+    // play sounds, show ui, announce to server
+    eb_PerformKillSpreeChecks();
+
+    return qtrue;     
+}
+
+typedef struct {
+    char* name;
+    int kill_count;
+    char* sound_path;
+    char* stuff_command;
+    char* ui_menu;
+} KillSpree;
+
+typedef struct {
+    char* name;
+    int kills_in_a_row;
+    char* sound_path;
+} QuickKill;
+
+// [Name] is on a Killing Spree!: You score 5 frags without dying.
+// [Name] is on a Rampage!: You score 10 frags without dying.
+// [Name] is Dominating!: You score 15 frags without dying.
+// [Name] is Unstoppable!: You score 20 frags without dying.
+// [Name] is Godlike!: You score 25 frags without dying.
+
+void eb_PerformQuickKills() 
+{
+    cvar_t *eb_sounds = cgi.Cvar_Get("eb_sounds", "1", 0);
+    cvar_t *eb_quickKillLevel = cgi.Cvar_Get("eb_quickKillLevel", "1", 0);    
+
+   // Update quick kill level
+    int quickKillLevel = eb_quickKillLevel->integer;
+    quickKillLevel++;
+
+    // Reset quick kill level if it's over 9
+    if (quickKillLevel > 9) {
+        quickKillLevel = 2;
+    }
+
+    char quickKillLevelString[20];
+    snprintf(quickKillLevelString, sizeof(quickKillLevelString), "%d", quickKillLevel);
+    cgi.Cvar_Set("eb_quickKillLevel", quickKillLevelString);
+
+    if (!eb_sounds->integer) 
+    {
+        return;
+    }
+    
+    // Double Kill: 2 kills.
+    // Multikill: 3 kills.
+    // Mega Kill: 4 kills.
+    // Monster Kill: 5 kills.
+    // Ultra Kill: 6 kills.
+    // Unholy: 7 kills.
+    // Impossible: 8 kills.
+    // Unpossible: 9 or more kills ( will continually announce "Unpossible!").
+
+    // {"Head Hunter", 0, "sounds/headhunter.mp3"},
+    // {"Headshot", 0, "sounds/headshot.mp3"},
+    // {"First Blood", 0, "sounds/firstblood.mp3", "scored first blood!"},
+
+    QuickKill QuickKills[] = {
+        {"Double Kill", 2, "sounds/double_kill.mp3"},
+        {"Multikill", 3, "sounds/multikill.mp3"},
+        {"Megakill", 4, "sounds/megakill.mp3"},
+        {"Monster Kill", 5, "sounds/monsterkill.mp3"},
+        {"Ultrakill", 6, "sounds/ultrakill.mp3"},
+        {"ludicrouskill", 7, "sounds/ludicrouskill.mp3"},
+        {"wickedsick", 8, "sounds/wickedsick.mp3"},
+        {"wickedsick", 8, "sounds/wickedsick.mp3"},
+        {"Holy Shit", 9, "sounds/holyshit.mp3"},        
+    };
+
+    // What quick kill level am i?
+    QuickKill *quickKill = NULL;
+    int killCount = eb_quickKillLevel->integer;
+    int numQuickKills = sizeof(QuickKills) / sizeof(QuickKills[0]);
+    for (int i = 0; i < numQuickKills; i++) {
+        if (killCount == QuickKills[i].kills_in_a_row) {
+            quickKill = &QuickKills[i];
+        }
+    }
+
+    if (!quickKill) 
+    {
+        return;
+    }
+
+    // concat quickKill->string and "play %s\n"
+    char playString[256];
+    size_t playStringSize = sizeof(playString);
+    snprintf(playString, playStringSize, "playmp3 %s\n", quickKill->sound_path);
+    playString[playStringSize - 1] = '\0'; // Ensure null-termination
+
+    cgi.Cmd_Stuff(playString);    
+}
+
+void eb_PerformKillSpreeChecks() 
+{
+    cvar_t *eb_sounds = cgi.Cvar_Get("eb_sounds", "1", 0);
+    cvar_t *eb_displays = cgi.Cvar_Get("eb_displays", "1", 0);
+    cvar_t *eb_announcements = cgi.Cvar_Get("eb_announcements", "1", 0);    
+    cvar_t *eb_killsInARow = cgi.Cvar_Get("eb_killsInARow", "1", 0);    
+
+    Com_Printf("eb_killsInARow: %s\n", eb_killsInARow->string);
+
+    // 5 kills in a row is a killing spree start
+    if (eb_killsInARow->integer < 5) 
+    {
+        return;
+    }
+    
+    // Double Kill: 2 kills.
+    // Multikill: 3 kills.
+    // Mega Kill: 4 kills.
+    // Monster Kill: 5 kills.
+    // Ultra Kill: 6 kills.
+    // Unholy: 7 kills.
+    // Impossible: 8 kills.
+    // Unpossible: 9 or more kills ( will continually announce "Unpossible!").
+    // {"Head Hunter", 0, "sounds/headhunter.wav"},
+    // {"Headshot", 0, "sounds/headshot.wav", "headshot"},       
+    // {"First Blood", 0, "sounds/firstblood.wav", "scored first blood!"},
+    // hidemenu headshot
+    // hidemenu firstblood
+    // hidemenu rampage
+    // hidemenu dominating
+    // hidemenu godlike
+    // hidemenu holyshit
+    // hidemenu unstoppable
+    // hidemenu killingspree
+
+    KillSpree killSprees[] = {
+        {"Killing Spree", 5, "sounds/killingspree.mp3", "%s is on a Killing Spree!", "killingspree"},
+        {"Rampage", 10, "sounds/rampage.mp3", "%s is on a Rampage!", "rampage"},
+        {"Dominating", 15, "sounds/dominating.mp3", "%s is Dominating", "dominating"},
+        {"Unstoppable", 20, "sounds/unstoppable.mp3", "%s is Unstoppable", "unstoppable"},
+        {"Godlike", 25, "sounds/godlike.mp3", "%s is Godlike!", "godlike"},        
+    };
+
+    // What kill spree level am I?
+    KillSpree *killSpree = NULL;
+    int killCount = eb_killsInARow->integer;
+    int numKillSprees = sizeof(killSprees) / sizeof(killSprees[0]);
+    for (int i = 0; i < numKillSprees; i++) {
+        if (killCount == killSprees[i].kill_count) {
+            killSpree = &killSprees[i];
+        }
+    }
+
+    if (!killSpree) 
+    {   
+        return;
+    }
+
+    if (eb_sounds->integer && killSpree->sound_path)
+    {        
+        char playString[256];
+        size_t playStringSize = sizeof(playString);
+        snprintf(playString, playStringSize, "playmp3 %s\n", killSpree->sound_path);
+        playString[playStringSize - 1] = '\0'; // Ensure null-termination
+
+        Com_Printf("playString is: %s\n", playString);
+        cgi.Cmd_Stuff(playString);
+    }    
+
+    if (eb_displays->integer && killSpree->ui_menu)
+    {               
+        char playString[512];
+        size_t playStringSize = sizeof(playString);
+        snprintf(playString, playStringSize, "showmenu %s; wait 450; hidemenu %s\n", killSpree->ui_menu, killSpree->ui_menu);
+        playString[playStringSize - 1] = '\0'; // Ensure null-termination
+
+        // Print final command
+        Com_Printf("playString is: %s\n", playString);
+        cgi.Cmd_Stuff(playString);
+    }  
+
+    if (eb_announcements->integer && killSpree->stuff_command)
+    {        
+        // concat killSpree->stuff_command, cgi.Cvar_Get("name", "", 0)->string
+        char sayString[256];
+        size_t sayStringSize = sizeof(sayString);
+        snprintf(sayString, sayStringSize, killSpree->stuff_command, cgi.Cvar_Get("name", "", 0)->string);
+        sayString[sayStringSize - 1] = '\0'; // Ensure null-termination
+    
+        char playString[512];
+        size_t playStringSize = sizeof(playString);
+        snprintf(playString, playStringSize, "dmmessage 0 %s\n", sayString);
+        playString[playStringSize - 1] = '\0'; // Ensure null-termination
+
+        Com_Printf("sayString is: %s\n", sayString);
+        Com_Printf("playString is: %s\n", playString);
+        cgi.Cmd_Stuff(playString);
+    }
+}
+
+void eb_ResetLastKillTime(void) 
+{
+    cgi.Cvar_Set("eb_lastKillTime", "0");
+}
+
+void eb_ResetKillsInARow(void) 
+{
+    cgi.Cvar_Set("eb_killsInARow", "0");
+}
+
+void eb_ResetDeathsInARow(void) 
+{
+    cgi.Cvar_Set("eb_deathsInARow", "0");
+}
+
+void eb_CheckForBodyParts(const char* fullCmd) 
+{   
+    // Get the location names from the cvars
+    cvar_t *eb_head = cgi.Cvar_Get("eb_head", "head,helmet,neck", 0);
+    cvar_t *eb_torso = cgi.Cvar_Get("eb_torso", "torso", 0);
+    cvar_t *eb_pelvis = cgi.Cvar_Get("eb_pelvis", "pelvis", 0);
+    cvar_t *eb_rightArm = cgi.Cvar_Get("eb_rightArm", "right arm,right hand", 0);
+    cvar_t *eb_leftArm = cgi.Cvar_Get("eb_leftArm", "left arm,left hand", 0);
+    cvar_t *eb_rightLeg = cgi.Cvar_Get("eb_rightLeg", "right leg,right foot", 0);
+    cvar_t *eb_leftLeg = cgi.Cvar_Get("eb_leftLeg", "left leg,left foot", 0);
+
+    cvar_t *eb_bodyPartCvars[] = {eb_head, eb_torso, eb_pelvis, eb_rightArm, eb_leftArm, eb_rightLeg, eb_leftLeg};
+
+    // loop through eb_bodyPartCvars
+    for (int i = 0; i < sizeof(eb_bodyPartCvars) / sizeof(eb_bodyPartCvars[0]); i++) 
+    {
+        Com_Printf("eb_bodyPartCvars[%d] is: %s\n", i, eb_bodyPartCvars[i]->string);
+        if (eb_CheckStringForCVar(fullCmd, eb_bodyPartCvars[i]))
+        {
+            Com_Printf("Found body part: %s\n", eb_bodyPartCvars[i]->string);
+            return;
+        }
+    }
+}
+
+qboolean eb_CheckStringForCVar(const char* fullCmd, cvar_t *cvar) 
+{
+    if (cvar == NULL || cvar->string == NULL || fullCmd == NULL) {
+        return qfalse; 
+    }
+
+    char *cvar_string = cvar->string;
+    char *item;
+    char *rest = cvar_string;
+
+    while ((item = strtok_r(rest, ",", &rest))) {
+        // Trim leading and trailing whitespaces
+        char *end;
+        if (item) {
+            while(isspace((unsigned char)*item)) item++;
+            end = item + strlen(item) - 1;
+            while(end > item && isspace((unsigned char)*end)) end--;
+            *(end+1) = 0;
+        }
+
+        if (item && strstr(fullCmd, item) != NULL) {
+            return qtrue;
+        }
+    }
+
+    return qfalse;
+}
+
+/*cvar_t *eb_sounds = 
 ================
 CG_ParseStats
 
@@ -289,7 +660,7 @@ static void CG_ServerCommand(qboolean modelOnly)
     const char *cmd;
 
     cmd = cgi.Argv(0);
-
+    
     if (!cmd[0]) {
         // server claimed the command
         return;
@@ -309,6 +680,10 @@ static void CG_ServerCommand(qboolean modelOnly)
         if (!strcmp(cmd, "hudprint")) {
             CG_HudPrint_f();
         }
+
+        // Process the cmd buffer for keywords
+        CG_ParsePrintedText();
+
         return;
     } else if (!strcmp(cmd, "printdeathmsg")) {
         const char *s1, *s2, * attackerName, * victimName, *type;

@@ -41,6 +41,7 @@ extern cvar_t *sound_overlay;
 //
 void CL_FillUIDef(void);
 void CL_InitializeUI(void);
+void CL_InitializeElgbot(void);
 void CL_ShutdownUI(void);
 
 //
