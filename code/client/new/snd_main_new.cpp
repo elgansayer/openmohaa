@@ -114,6 +114,13 @@ S_StartLocalSound
 void S_StartLocalSoundChannel(const char* sound_name, qboolean force_load, int channel)
 {
     // FIXME: unimplemented
+    sfxHandle_t h;
+
+    h = S_RegisterSound(sound_name, qfalse);
+
+    if (h) {
+        S_StartLocalSound(h, channel);
+    }    
 }
 
 sfxHandle_t	S_RegisterSound(const char* sample, qboolean compressed, qboolean streamed) {

@@ -144,6 +144,11 @@ cvar_t        *eb_deathsInARow;
 cvar_t        *eb_killsInARow;
 cvar_t        *eb_quickKillLevel;
 
+cvar_t        *eb_deathChecks;
+cvar_t        *eb_killChecks;
+
+cvar_t        *eb_mapRestart;
+
 cvar_t        *eb_suicide;
 cvar_t        *eb_gotKill;
 cvar_t        *eb_bashed;
@@ -172,16 +177,27 @@ cvar_t              *cl_movieaudio;
 // Elgbot
 cvar_t *cl_NumSuicides;
 cvar_t *cl_NumKills;
+cvar_t *cl_NumDeaths;
+
 cvar_t *cl_NumKillingSpree;
 cvar_t *cl_NumRampage;
 cvar_t *cl_NumDominating;
 cvar_t *cl_NumUnstoppable;
 cvar_t *cl_NumGodLike;
-cvar_t *cl_NumHolyShit;
 cvar_t *cl_bashed;
 cvar_t *cl_gotBashed;
 cvar_t *cl_numDeathsInARow;
 cvar_t *cl_numKillsInARow;
+
+
+cvar_t * cl_NumDoubleKills;
+cvar_t * cl_NumMultikills;
+cvar_t * cl_NumMegakills;
+cvar_t * cl_NumMonsterKills;
+cvar_t * cl_NumUltrakills;
+cvar_t * cl_NumLudicrouskills;
+cvar_t * cl_NumWickedSick;
+cvar_t * cl_NumHolyShit;
 
 static unsigned int  startCountLow;
 static unsigned int  startCountHigh;
@@ -5172,18 +5188,29 @@ CL_InitUI
 
 void CL_InitializeElgbot(void) 
 {
-
     //TODO: Get these all time from mysql/updatw sql and use for in game display
     cl_NumSuicides = Cvar_Get("ui_NumSuicides", "0", 0);
     cl_NumKills = Cvar_Get("ui_NumKills", "0", 0);
+    cl_NumDeaths = Cvar_Get("ui_NumDeaths", "0", 0);
+    
+    cl_NumDoubleKills = Cvar_Get("ui_NumDoubleKills", "0", 0);
+    cl_NumMultikills = Cvar_Get("ui_NumMultikills", "0", 0);
+    cl_NumMegakills = Cvar_Get("ui_NumMegakills", "0", 0);
+    cl_NumMonsterKills = Cvar_Get("ui_NumMonsterKills", "0", 0);
+    cl_NumUltrakills = Cvar_Get("ui_NumUltrakills", "0", 0);
+    cl_NumLudicrouskills = Cvar_Get("ui_NumLudicrouskills", "0", 0);
+    cl_NumWickedSick = Cvar_Get("ui_NumWickedSick", "0", 0);
+    cl_NumHolyShit = Cvar_Get("ui_NumHolyShit", "0", 0);
+
     cl_NumKillingSpree = Cvar_Get("ui_NumKillingSpree", "0", 0);
     cl_NumRampage = Cvar_Get("ui_NumRampage", "0", 0);
     cl_NumDominating = Cvar_Get("ui_NumDominating", "0", 0);
     cl_NumUnstoppable = Cvar_Get("ui_NumUnstoppable", "0", 0);
     cl_NumGodLike = Cvar_Get("ui_NumGodLike", "0", 0);
-    cl_NumHolyShit = Cvar_Get("ui_NumHolyShit", "0", 0);
+    
     cl_bashed = Cvar_Get("ui_bashed", "0", 0);
     cl_gotBashed = Cvar_Get("ui_gotBashed", "0", 0);
+
     cl_numDeathsInARow = Cvar_Get("ui_numDeathsInARow", "0", 0);
     cl_numKillsInARow = Cvar_Get("ui_numKillsInARow", "0", 0);
 
@@ -5214,6 +5241,11 @@ void CL_InitializeElgbot(void)
     eb_killsInARow = Cvar_Get("eb_killsInARow", "0", CVAR_INIT);    
     eb_lastKillTime = Cvar_Get("eb_lastKillTime", "0", CVAR_INIT);
     eb_quickKillLevel = Cvar_Get("eb_quickKillLevel", "0", CVAR_INIT);    
+
+    eb_deathChecks = Cvar_Get("eb_deathChecks", "%s was,%s caught,%s is picking,%s died,%s took,%s tripped,blew up %s,%s blew up,%s played,%s cratered", 0);
+    eb_killChecks = Cvar_Get("eb_killChecks", "by %s", 0);
+
+    eb_mapRestart = Cvar_Get("eb_mapRestart", "%s has entered the battle", 0);
 }
 
 void CL_InitializeUI(void)
