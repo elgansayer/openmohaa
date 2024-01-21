@@ -37,8 +37,6 @@ target_compile_features(qcommon INTERFACE cxx_nullptr)
 target_compile_features(qcommon INTERFACE c_variadic_macros)
 target_link_libraries(qcommon INTERFACE qcommon_version)
 
-target_link_libraries(qcommon INTERFACE omohsqlite)
-
 # Source files for standalone executable
 set(SOURCES_COMMON
 	"${CMAKE_SOURCE_DIR}/code/qcommon/alias.c"

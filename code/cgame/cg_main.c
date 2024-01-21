@@ -677,6 +677,8 @@ void CG_Init(clientGameImport_t *imported, int serverMessageNum, int serverComma
     // HUD setup
     CG_RefreshHudDrawElements();
     cgi.Cmd_Execute(EXEC_NOW, "ui_hud 1\n");
+
+    // eb_SqlInit();
 }
 
 /*
@@ -701,6 +703,8 @@ void CG_Shutdown(void)
     // reset the scoreboard
     CG_PrepScoreBoardInfo();
     cgi.UI_HideScoreBoard();
+
+    // eb_Shutdown();
 }
 
 int CG_GetParent(int entnum)
@@ -816,12 +820,7 @@ void Com_Error(int level, const char *error, ...)
 
     cgi.Error(level, "%s", text);
 }
-
-void Com_Test_Sql_f( const char * attackerName,const char * victimName, const char *s1,const char *s2,const char *type ) {
-    // print here
-    cgi.Printf("Com_Test_Sql_f: %s %s %s %s %s\n", attackerName, victimName, s1, s2, type);
-}
-
+ 
 void Com_Printf(const char *msg, ...)
 {
     va_list argptr;
