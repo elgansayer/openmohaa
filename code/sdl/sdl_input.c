@@ -1158,19 +1158,15 @@ static void IN_ProcessEvents( void )
 								break;
 							}
 
-							Cvar_SetValue( "r_customwidth", width );
-							Cvar_SetValue( "r_customheight", height );
-							Cvar_Set( "r_mode", "-1" );
+							//TODO: Come and fix me
 
-							Com_DPrintf("vidWidth: %d\n", cls.glconfig.vidWidth);
-							Com_DPrintf("vidHeight: %d\n", cls.glconfig.vidHeight);
+							// Com_DPrintf("vidWidth: %d\n", cls.glconfig.vidWidth);
+							// Com_DPrintf("vidHeight: %d\n", cls.glconfig.vidHeight);
 							
 							// print width and height to console
-							Com_DPrintf("Width: %d\n", width);
-							Com_DPrintf("Height: %d\n", height);
+							// Com_DPrintf("Width: %d\n", width);
+							// Com_DPrintf("Height: %d\n", height);
 
-				Cbuf_ExecuteText(EXEC_NOW, "quit Closed window\n");
-				
 							// Wait until user stops dragging for 1 second, so
 							// we aren't constantly recreating the GL context while
 							// he tries to drag...

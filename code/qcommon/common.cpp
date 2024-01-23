@@ -25,7 +25,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "qcommon.h"
 #include "q_version.h"
 #include <setjmp.h>
-#include <sqlite3.h> 
 
 #ifndef _WIN32
 #include <netinet/in.h>
@@ -1854,14 +1853,6 @@ void Com_Init( char *commandLine ) {
 }
 
 //==================================================================
-static int callback(void *NotUsed, int argc, char **argv, char **azColName) {
-   int i;
-   for(i = 0; i<argc; i++) {
-      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-   }
-   printf("\n");
-   return 0;
-}
 
 void Com_WriteConfigToFile( const char *filename ) {
 	fileHandle_t	f;

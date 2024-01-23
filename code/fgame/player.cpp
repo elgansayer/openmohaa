@@ -7573,9 +7573,6 @@ void Player::EndFrame(void)
 void Player::GotKill(Event *ev)
 
 { 
-        // PRINT WE ARE HERE
-    gi.Printf("We are GotKill\n");
-    
     /*
     Entity *victim;
    Entity *inflictor;
@@ -11867,11 +11864,6 @@ void Player::GetDeaths(Event *ev)
 
 void Player::GetKillHandler(Event *ev)
 {
-    // PRINT WE ARE HERE
-    gi.Printf("We are here\n");
-    
-
-
     if (m_killedLabel.IsSet()) {
         m_killedLabel.GetScriptValue(&ev->GetValue());
     } else {
