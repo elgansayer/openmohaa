@@ -27,7 +27,7 @@ target_compile_features(cgame PUBLIC cxx_nullptr)
 target_compile_features(cgame PUBLIC c_variadic_macros)
 target_link_libraries(cgame PUBLIC qcommon)
 
-target_link_libraries(cgame PRIVATE` omohsqlite)
+target_link_libraries(cgame PRIVATE omohsqlite)
 
 set_target_properties(cgame PROPERTIES PREFIX "${TARGET_PLATFORM_PREFIX}")
 set_target_properties(cgame PROPERTIES OUTPUT_NAME "cgame${TARGET_ARCH_SUFFIX}")
