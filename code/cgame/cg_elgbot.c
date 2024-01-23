@@ -532,6 +532,10 @@ qboolean eb_CheckStringForCVar(const char* fullCmd, cvar_t *cvar, const char *pa
     char *item;
     char *rest = cvar_string;
 
+    #if defined (_WIN32) || defined (_WIN64)
+        #define strtok_r strtok_s
+    #endif
+
     while ((item = strtok_r(rest, ",", &rest))) {
         // Trim leading and trailing whitespaces
         char *end;
