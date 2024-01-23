@@ -1,4 +1,4 @@
-/*
+ /*
 ===========================================================================
 Copyright (C) 2023 the OpenMoHAA team
 
@@ -99,9 +99,6 @@ void eb_ParsePrintedText()
     // Com_Printf("Command is: %s\n", cgi.Argv(0));
     // Com_Printf("fullCmd is: %s\n", cgi.Args());
     // Com_Printf("combinedCmd is: %s\n", combinedCmd);
-
-    // cvar_t *eb_bashed = cgi.Cvar_Get("eb_bashed", "", 0);
-    // cvar_t *eb_gotBashed = cgi.Cvar_Get("eb_gotBashed", "", 0);
 
     // Reset everything if we enter a new battle
     if (eb_ProcessDidEnterBattle(combinedCmd))
@@ -219,6 +216,18 @@ qboolean eb_ProcessGotKill(const char *fullCmd)
     if (!eb_CheckStringForCVar(fullCmd , eb_killChecks, name_cvar->string))
     {
         return qfalse;
+    }
+
+    // Check for bash
+
+    // cvar_t *eb_gotBashed = cgi.Cvar_Get("eb_gotBashed", "", 0);
+    cvar_t *eb_bashed = cgi.Cvar_Get("eb_bashed", "was clubbed by %s, was bashed by %s", 0);    
+    if (eb_CheckStringForCVar(fullCmd , eb_bashed, name_cvar->string))
+    {
+        eb_Action bashAction = 
+            {"bashed",0, NULL, NULL, NULL, "ui_NumBashed"};
+        
+        eb_UpdateStat(&bashAction);      
     }
 
     // We got a kill, lets chat if we got a headshot or other

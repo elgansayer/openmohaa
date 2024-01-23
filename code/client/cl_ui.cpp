@@ -129,8 +129,8 @@ cvar_t        *ui_NumDominating;
 cvar_t        *ui_NumUnstoppable;
 cvar_t        *ui_NumGodLike;
 cvar_t        *ui_NumHolyShit;
-cvar_t        *ui_bashed;
-cvar_t        *ui_gotBashed;
+cvar_t        *ui_NumBashed;
+cvar_t        *ui_numGotBashed;
 
 // Elgbot configurations (words to look for)
 cvar_t        *eb_sounds; // play sounds
@@ -5209,8 +5209,8 @@ void CL_InitializeElgbot(void)
     cl_NumUnstoppable = Cvar_Get("ui_NumUnstoppable", "0", 0);
     cl_NumGodLike = Cvar_Get("ui_NumGodLike", "0", 0);
     
-    cl_bashed = Cvar_Get("ui_bashed", "0", 0);
-    cl_gotBashed = Cvar_Get("ui_gotBashed", "0", 0);
+    cl_bashed = Cvar_Get("ui_NumBashed", "0", 0);
+    cl_gotBashed = Cvar_Get("ui_numGotBashed", "0", 0);
 
     cl_numDeathsInARow = Cvar_Get("ui_numDeathsInARow", "0", 0);
     cl_numKillsInARow = Cvar_Get("ui_numKillsInARow", "0", 0);
@@ -5226,8 +5226,8 @@ void CL_InitializeElgbot(void)
     eb_suicide = Cvar_Get("eb_suicide", "killed yourself", 0);
     eb_gotKill = Cvar_Get("eb_gotKill", "You killed", 0);
 
-    eb_bashed = Cvar_Get("eb_bashed", "", 0);
-    eb_gotBashed = Cvar_Get("eb_gotBashed", "", 0);
+    eb_bashed = Cvar_Get("eb_bashed", "was clubbed by %s, was bashed by %s", 0);
+    eb_gotBashed = Cvar_Get("eb_gotBashed", "%s was clubbed,%s was bashed by", 0);
     
     eb_head = Cvar_Get("eb_head", "head,helmet,neck", 0);
     eb_torso = Cvar_Get("eb_torso", "torso", 0);
